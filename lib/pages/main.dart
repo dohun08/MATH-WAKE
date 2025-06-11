@@ -57,6 +57,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 ElevatedButton(onPressed: (){
+                  Navigator.pushNamed(context, '/addition/time');
                 },
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
@@ -407,6 +408,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           child: ElevatedButton(onPressed: (){
+            Navigator.pushNamed(context, '/addition/problem');
           },
             style: ElevatedButton.styleFrom(
               shape: const CircleBorder(),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:math_wake/pages/addition-problem.dart';
+import 'package:math_wake/pages/addition-time.dart';
 import 'package:math_wake/pages/main.dart';
+import 'package:math_wake/pages/solve.dart';
 
 
 void main() {
@@ -36,9 +39,9 @@ class MyApp extends StatelessWidget {
 
       routes: {
         '/': (context) => HomePage(),
-        '/addition/time': (context) => HomePage(),
-        '/solve': (context) => HomePage(),
-        '/addition/problem': (context) => HomePage(),
+        '/addition/time': (context) => AdditionTime(),
+        '/solve': (context) => Solve(),
+        '/addition/problem': (context) => AdditionProblem(),
       },
     );
   }
