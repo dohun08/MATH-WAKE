@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:math_wake/components/header.dart';
 import 'package:math_wake/size.dart';
 import '../components/toggle-button.dart';
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -14,11 +16,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      home: HomePage(), // 여기를 HomePage()로 변경
     );
   }
 }
 
+// StatefulWidget 정의
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -26,13 +29,36 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+// State 클래스
 class _HomePageState extends State<HomePage> {
-  int counter = 0;
+  List<Map<String, dynamic>> _alarmList = [];
 
-  void _increaseCounter() {
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedData();
+  }
+
+  Future<void> _loadSavedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? jsonString = prefs.getString('alarmList');
+
+    if (jsonString == null) {
+      print('저장된 알람 리스트가 없습니다.');
+      return;
+    }
+
+    List<dynamic> jsonList = jsonDecode(jsonString);
+    List<Map<String, dynamic>> alarmList =
+    jsonList.map((e) => Map<String, dynamic>.from(e)).toList();
+
     setState(() {
-      counter++;
+      _alarmList = alarmList;
     });
+
+    for (var alarm in _alarmList) {
+      print('title: ${alarm['title']}, hour: ${alarm['hour']}, minute: ${alarm['minute']}');
+    }
   }
 
   @override
@@ -71,321 +97,71 @@ class _HomePageState extends State<HomePage> {
             SizedBox(height: largeGap),
             Expanded(
               child: ListView(
-                // ListView의 기본 패딩을 없애고 싶으면 아래 주석 해제
-                // padding: EdgeInsets.zero,
+                padding: EdgeInsets.zero,
                 children: [
-                  Container(
-                    // height: 100, // ListView 안에 있는 자식 Container에 고정 높이를 주면 스크롤이 안 될 수 있습니다.
-                    // 자식 Container의 높이는 내부 내용에 따라 유동적으로 조절되도록 하는 것이 일반적입니다.
-                    // 하지만 알람 카드가 고정된 높이라면 유지해도 괜찮습니다.
-                    padding : EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF212121), // const 추가
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    width: double.infinity,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Align 위젯은 Column의 crossAxisAlignment: CrossAxisAlignment.start 때문에 불필요.
-                        Text(
-                          "알람제목",
-                          style: const TextStyle( // const 추가
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white, // 텍스트 색상 추가 (배경이 어두우므로)
+                  for (var alarm in _alarmList) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF212121),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      width: double.infinity,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            alarm['title'] ?? '제목 없음',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: mediumGap), // size.dart 파일에 정의된 변수 사용
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                Text(
-                                  "07:30",
-                                  style: const TextStyle( // const 추가
-                                    fontSize: 40,
-                                    letterSpacing: 3.0,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white, // 텍스트 색상 추가
+                          SizedBox(height: mediumGap),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  Text(
+                                    '${(alarm['hour'] ?? 0).toString().padLeft(2, '0')}:${(alarm['minute'] ?? 0).toString().padLeft(2, '0')}',
+                                    style: const TextStyle(
+                                      fontSize: 40,
+                                      letterSpacing: 3.0,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 8), // const 추가
-                                Text(
-                                  "오전",
-                                  style: const TextStyle( // const 추가
-                                    fontSize: 18,
-                                    letterSpacing: 3.0,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.white70, // 텍스트 색상 추가
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    (alarm['hour'] != null && alarm['hour']! >= 12) ? '오후' : '오전',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      letterSpacing: 3.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white70,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            ToggleButton(
-                              onToggle: (bool value) {
-                                print("Toggle is now: $value");
-                              },
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: largeGap),
-                  Container(
-                    // height: 100, // ListView 안에 있는 자식 Container에 고정 높이를 주면 스크롤이 안 될 수 있습니다.
-                    // 자식 Container의 높이는 내부 내용에 따라 유동적으로 조절되도록 하는 것이 일반적입니다.
-                    // 하지만 알람 카드가 고정된 높이라면 유지해도 괜찮습니다.
-                    padding : EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF212121), // const 추가
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    width: double.infinity,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Align 위젯은 Column의 crossAxisAlignment: CrossAxisAlignment.start 때문에 불필요.
-                        Text(
-                          "알람제목",
-                          style: const TextStyle( // const 추가
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white, // 텍스트 색상 추가 (배경이 어두우므로)
+                                ],
+                              ),
+                              ToggleButton(
+                                onToggle: (bool value) {
+                                  print("Toggle is now: $value");
+                                },
+                              ),
+                            ],
                           ),
-                        ),
-                        SizedBox(height: mediumGap), // size.dart 파일에 정의된 변수 사용
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                Text(
-                                  "07:30",
-                                  style: const TextStyle( // const 추가
-                                    fontSize: 40,
-                                    letterSpacing: 3.0,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white, // 텍스트 색상 추가
-                                  ),
-                                ),
-                                const SizedBox(width: 8), // const 추가
-                                Text(
-                                  "오전",
-                                  style: const TextStyle( // const 추가
-                                    fontSize: 18,
-                                    letterSpacing: 3.0,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.white70, // 텍스트 색상 추가
-                                  ),
-                                ),
-                              ],
-                            ),
-                            ToggleButton(
-                              onToggle: (bool value) {
-                                print("Toggle is now: $value");
-                              },
-                            ),
-                          ],
-                        )
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: largeGap),
-                  Container(
-                    // height: 100, // ListView 안에 있는 자식 Container에 고정 높이를 주면 스크롤이 안 될 수 있습니다.
-                    // 자식 Container의 높이는 내부 내용에 따라 유동적으로 조절되도록 하는 것이 일반적입니다.
-                    // 하지만 알람 카드가 고정된 높이라면 유지해도 괜찮습니다.
-                    padding : EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF212121), // const 추가
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    width: double.infinity,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Align 위젯은 Column의 crossAxisAlignment: CrossAxisAlignment.start 때문에 불필요.
-                        Text(
-                          "알람제목",
-                          style: const TextStyle( // const 추가
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white, // 텍스트 색상 추가 (배경이 어두우므로)
-                          ),
-                        ),
-                        SizedBox(height: mediumGap), // size.dart 파일에 정의된 변수 사용
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                Text(
-                                  "07:30",
-                                  style: const TextStyle( // const 추가
-                                    fontSize: 40,
-                                    letterSpacing: 3.0,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white, // 텍스트 색상 추가
-                                  ),
-                                ),
-                                const SizedBox(width: 8), // const 추가
-                                Text(
-                                  "오전",
-                                  style: const TextStyle( // const 추가
-                                    fontSize: 18,
-                                    letterSpacing: 3.0,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.white70, // 텍스트 색상 추가
-                                  ),
-                                ),
-                              ],
-                            ),
-                            ToggleButton(
-                              onToggle: (bool value) {
-                                print("Toggle is now: $value");
-                              },
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: largeGap),
-                  Container(
-                    // height: 100, // ListView 안에 있는 자식 Container에 고정 높이를 주면 스크롤이 안 될 수 있습니다.
-                    // 자식 Container의 높이는 내부 내용에 따라 유동적으로 조절되도록 하는 것이 일반적입니다.
-                    // 하지만 알람 카드가 고정된 높이라면 유지해도 괜찮습니다.
-                    padding : EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF212121), // const 추가
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    width: double.infinity,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Align 위젯은 Column의 crossAxisAlignment: CrossAxisAlignment.start 때문에 불필요.
-                        Text(
-                          "알람제목",
-                          style: const TextStyle( // const 추가
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white, // 텍스트 색상 추가 (배경이 어두우므로)
-                          ),
-                        ),
-                        SizedBox(height: mediumGap), // size.dart 파일에 정의된 변수 사용
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                Text(
-                                  "07:30",
-                                  style: const TextStyle( // const 추가
-                                    fontSize: 40,
-                                    letterSpacing: 3.0,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white, // 텍스트 색상 추가
-                                  ),
-                                ),
-                                const SizedBox(width: 8), // const 추가
-                                Text(
-                                  "오전",
-                                  style: const TextStyle( // const 추가
-                                    fontSize: 18,
-                                    letterSpacing: 3.0,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.white70, // 텍스트 색상 추가
-                                  ),
-                                ),
-                              ],
-                            ),
-                            ToggleButton(
-                              onToggle: (bool value) {
-                                print("Toggle is now: $value");
-                              },
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: largeGap),
-                  Container(
-                    // height: 100, // ListView 안에 있는 자식 Container에 고정 높이를 주면 스크롤이 안 될 수 있습니다.
-                    // 자식 Container의 높이는 내부 내용에 따라 유동적으로 조절되도록 하는 것이 일반적입니다.
-                    // 하지만 알람 카드가 고정된 높이라면 유지해도 괜찮습니다.
-                    padding : EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF212121), // const 추가
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    width: double.infinity,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Align 위젯은 Column의 crossAxisAlignment: CrossAxisAlignment.start 때문에 불필요.
-                        Text(
-                          "알람제목",
-                          style: const TextStyle( // const 추가
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white, // 텍스트 색상 추가 (배경이 어두우므로)
-                          ),
-                        ),
-                        SizedBox(height: mediumGap), // size.dart 파일에 정의된 변수 사용
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                Text(
-                                  "07:30",
-                                  style: const TextStyle( // const 추가
-                                    fontSize: 40,
-                                    letterSpacing: 3.0,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white, // 텍스트 색상 추가
-                                  ),
-                                ),
-                                const SizedBox(width: 8), // const 추가
-                                Text(
-                                  "오전",
-                                  style: const TextStyle( // const 추가
-                                    fontSize: 18,
-                                    letterSpacing: 3.0,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.white70, // 텍스트 색상 추가
-                                  ),
-                                ),
-                              ],
-                            ),
-                            ToggleButton(
-                              onToggle: (bool value) {
-                                print("Toggle is now: $value");
-                              },
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: largeGap),
+                    SizedBox(height: largeGap),
+                  ],
                 ],
               ),
+
             ),
        ],
       ),

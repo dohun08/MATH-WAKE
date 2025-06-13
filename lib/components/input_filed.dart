@@ -3,17 +3,25 @@ import 'package:math_wake/size.dart';
 
 class CustomTextFormField extends StatefulWidget {
   final String text;
+  final TextEditingController controller;
+  final Function(String)? onChanged; // ✅ 추가된 부분
 
-  const CustomTextFormField(this.text, {Key? key}) : super(key: key);
+  const CustomTextFormField(
+      this.text, {
+        Key? key,
+        required this.controller,
+        this.onChanged, // ✅ 추가된 부분
+      }) : super(key: key);
 
   @override
   State<CustomTextFormField> createState() => _CustomTextFormFieldState();
 }
+
 class _CustomTextFormFieldState extends State<CustomTextFormField> {
   bool _isHovered = false;
 
-  static const baseColor = Colors.white;       // 기본 흰색으로 변경
-  static const hoverColor = Color(0xFFFFEA00); // 노란색 (hover)
+  static const baseColor = Colors.white;
+  static const hoverColor = Color(0xFFFFEA00);
 
   @override
   Widget build(BuildContext context) {
@@ -30,27 +38,21 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           child: SizedBox(
             width: double.infinity,
             child: TextFormField(
+              controller: widget.controller,
+              onChanged: widget.onChanged, // ✅ 추가된 부분
               validator: (value) =>
               value!.isEmpty ? "Please enter some text" : null,
               obscureText: widget.text.toLowerCase().contains("password"),
               cursorColor: borderColor,
               style: TextStyle(color: textColor),
               decoration: InputDecoration(
-                hintText: "${widget.text}",
-                hintStyle: TextStyle(color: textColor.withOpacity(0.7)), // 힌트는 약간 투명하게
+                hintText: widget.text,
+                hintStyle: TextStyle(color: textColor.withOpacity(0.7)),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(color: borderColor),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: borderColor, width: 2.0),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: borderColor),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(color: borderColor, width: 2.0),
                 ),

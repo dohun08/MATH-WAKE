@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class TimeboxPicker extends StatefulWidget {
   final int maxValue;
+  final Function(int)? onChanged; // ✅ 콜백 추가
 
-  const TimeboxPicker({super.key, required this.maxValue});
+  const TimeboxPicker({super.key, required this.maxValue, this.onChanged});
 
   @override
   State<TimeboxPicker> createState() => _TimeboxPickerState();
@@ -26,10 +27,15 @@ class _TimeboxPickerState extends State<TimeboxPicker> {
               setState(() {
                 selectedIndex = index;
               });
+
+              // ✅ 값 변경 시 외부로 전달
+              if (widget.onChanged != null) {
+                widget.onChanged!(index);
+              }
             },
             physics: const FixedExtentScrollPhysics(),
             childDelegate: ListWheelChildBuilderDelegate(
-              childCount: widget.maxValue + 1, // 0 ~ maxValue
+              childCount: widget.maxValue + 1,
               builder: (context, index) {
                 final isSelected = index == selectedIndex;
                 return Center(
@@ -48,21 +54,14 @@ class _TimeboxPickerState extends State<TimeboxPicker> {
               },
             ),
           ),
-          // 위쪽 선
-          const Positioned(
-            top: 55,
-            child: DividerLine(),
-          ),
-          // 아래쪽 선
-          const Positioned(
-            top: 145,
-            child: DividerLine(),
-          ),
+          const Positioned(top: 55, child: DividerLine()),
+          const Positioned(top: 145, child: DividerLine()),
         ],
       ),
     );
   }
 }
+
 
 class DividerLine extends StatelessWidget {
   const DividerLine({super.key});
