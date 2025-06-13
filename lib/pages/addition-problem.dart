@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
-import '../components/header.dart';
 import '../containers/addition-problem/addition.dart';
 
 class AdditionProblem extends StatefulWidget {
@@ -37,7 +35,7 @@ class _AdditionProblemState extends State<AdditionProblem> {
     return Scaffold(
       body: Center(
         child: _image != null
-            ? ProblermPicker(image: Image.file(_image!).image)
+            ? ProblemPicker(image: Image.file(_image!).image)
             : Text('카메라를 실행 중입니다...'),
       ),
     );

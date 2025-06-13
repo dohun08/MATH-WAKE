@@ -42,11 +42,12 @@ class _AdditionTime extends State<AdditionTime> {
     String? jsonString = prefs.getString('alarmList');
     List<dynamic> alarmList = jsonString == null ? [] : jsonDecode(jsonString);
 
-    // 2. 새 알람 아이템 만들기
+    // 2. 새 알람 아이템 만들기 (status: false 추가)
     Map<String, dynamic> newAlarm = {
       'title': title,
       'hour': selectedHour,
       'minute': selectedMinute,
+      'status': false,  // 새로 추가된 상태값
     };
 
     // 3. 리스트에 새 아이템 추가
@@ -55,8 +56,8 @@ class _AdditionTime extends State<AdditionTime> {
     // 4. 다시 JSON 문자열로 변환해 저장
     await prefs.setString('alarmList', jsonEncode(alarmList));
 
-    print("✅ 저장 완료: $title, $selectedHour:$selectedMinute");
-    Navigator.pop(context);
+    print("✅ 저장 완료: $title, $selectedHour:$selectedMinute, status: false");
+    Navigator.pop(context, 'updated');
   }
 
   @override

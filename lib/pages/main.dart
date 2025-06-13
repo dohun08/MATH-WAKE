@@ -32,6 +32,7 @@ class HomePage extends StatefulWidget {
 // State 클래스
 class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> _alarmList = [];
+  List<Map<String, dynamic>> problems = [];
 
   @override
   void initState() {
@@ -41,26 +42,53 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadSavedData() async {
     final prefs = await SharedPreferences.getInstance();
-    String? jsonString = prefs.getString('alarmList');
 
-    if (jsonString == null) {
-      print('저장된 알람 리스트가 없습니다.');
-      return;
-    }
+    final keys = prefs.getKeys();
+    print('📋 SharedPreferences 전체 저장소:');
 
-    List<dynamic> jsonList = jsonDecode(jsonString);
-    List<Map<String, dynamic>> alarmList =
-    jsonList.map((e) => Map<String, dynamic>.from(e)).toList();
+    for (String key in keys) {
+      final value = prefs.getString(key);
+      print('키: $key, 값: $value');
 
-    setState(() {
-      _alarmList = alarmList;
-    });
+      // 예: problemList가 있으면 상태에 저장
+      if (key == 'problemList' && value != null) {
+        List<dynamic> problemJsonList = jsonDecode(value);
+        List<Map<String, dynamic>> problemList =
+        problemJsonList.map((e) => Map<String, dynamic>.from(e)).toList();
+        setState(() {
+          problems = problemList;  // problems는 상태변수라고 가정
+        });
+      }
 
-    for (var alarm in _alarmList) {
-      print('title: ${alarm['title']}, hour: ${alarm['hour']}, minute: ${alarm['minute']}');
+      // 예: alarmList가 있으면 상태에 저장
+      if (key == 'alarmList' && value != null) {
+        List<dynamic> alarmJsonList = jsonDecode(value);
+        List<Map<String, dynamic>> alarmList =
+        alarmJsonList.map((e) => Map<String, dynamic>.from(e)).toList();
+        setState(() {
+          _alarmList = alarmList; // _alarmList도 상태변수라고 가정
+        });
+
+        for (var alarm in _alarmList) {
+          print('title: ${alarm['title']}, hour: ${alarm['hour']}, minute: ${alarm['minute']}');
+        }
+      }
+
+      // 필요하면 여기에 다른 키들도 비슷하게 처리 가능
     }
   }
 
+  void _toggleAlarmStatus(int index, bool newStatus) async {
+    setState(() {
+      _alarmList[index]['status'] = newStatus;
+    });
+
+    // SharedPreferences에 업데이트 저장
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('alarmList', jsonEncode(_alarmList));
+
+    print("알람 ${_alarmList[index]['title']} 상태 변경: $newStatus");
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,8 +110,14 @@ class _HomePageState extends State<HomePage> {
                     letterSpacing: 1.5,
                   ),
                 ),
-                ElevatedButton(onPressed: (){
-                  Navigator.pushNamed(context, '/addition/time');
+                ElevatedButton(onPressed: () async {
+                  // 알람 추가 페이지로 이동
+                  final result = await Navigator.pushNamed(context, '/solve');
+
+                  // 돌아왔을 때 result가 'updated'라면 데이터 다시 불러오기
+                  if (result == 'updated') {
+                    await _loadSavedData();
+                  }
                 },
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
@@ -99,7 +133,7 @@ class _HomePageState extends State<HomePage> {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  for (var alarm in _alarmList) ...[
+                  for (int i = 0; i < _alarmList.length; i++) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
                       decoration: BoxDecoration(
@@ -111,7 +145,7 @@ class _HomePageState extends State<HomePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            alarm['title'] ?? '제목 없음',
+                            _alarmList[i]['title'] ?? '제목 없음',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -127,7 +161,7 @@ class _HomePageState extends State<HomePage> {
                                 textBaseline: TextBaseline.alphabetic,
                                 children: [
                                   Text(
-                                    '${(alarm['hour'] ?? 0).toString().padLeft(2, '0')}:${(alarm['minute'] ?? 0).toString().padLeft(2, '0')}',
+                                    '${(_alarmList[i]['hour'] ?? 0).toString().padLeft(2, '0')}:${(_alarmList[i]['minute'] ?? 0).toString().padLeft(2, '0')}',
                                     style: const TextStyle(
                                       fontSize: 40,
                                       letterSpacing: 3.0,
@@ -137,7 +171,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    (alarm['hour'] != null && alarm['hour']! >= 12) ? '오후' : '오전',
+                                    (_alarmList[i]['hour'] != null && _alarmList[i]['hour']! >= 12) ? '오후' : '오전',
                                     style: const TextStyle(
                                       fontSize: 18,
                                       letterSpacing: 3.0,
@@ -148,8 +182,9 @@ class _HomePageState extends State<HomePage> {
                                 ],
                               ),
                               ToggleButton(
+                                isOn: _alarmList[i]['status'] ?? false,
                                 onToggle: (bool value) {
-                                  print("Toggle is now: $value");
+                                  _toggleAlarmStatus(i, value);
                                 },
                               ),
                             ],
@@ -158,7 +193,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     SizedBox(height: largeGap),
-                  ],
+                  ]
+
                 ],
               ),
 

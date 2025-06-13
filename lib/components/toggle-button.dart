@@ -1,30 +1,22 @@
 import 'package:flutter/material.dart';
 
-class ToggleButton extends StatefulWidget {
+class ToggleButton extends StatelessWidget {
+  final bool isOn; // 외부에서 상태 받음
   final Color onColor;
   final Color offColor;
   final ValueChanged<bool>? onToggle;
 
   const ToggleButton({
     Key? key,
+    required this.isOn,
     this.onColor = const Color(0xFFFFEA00), // 노란색
     this.offColor = const Color(0xFFEFEFEF), // 연한 회색
     this.onToggle,
   }) : super(key: key);
 
-  @override
-  _ToggleButtonState createState() => _ToggleButtonState();
-}
-
-class _ToggleButtonState extends State<ToggleButton> {
-  bool isOn = false;
-
   void toggle() {
-    setState(() {
-      isOn = !isOn;
-    });
-    if (widget.onToggle != null) {
-      widget.onToggle!(isOn);
+    if (onToggle != null) {
+      onToggle!(!isOn);
     }
   }
 
@@ -38,7 +30,7 @@ class _ToggleButtonState extends State<ToggleButton> {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: isOn ? widget.onColor : widget.offColor,
+          color: isOn ? onColor : offColor,
         ),
         child: Stack(
           children: [
@@ -52,7 +44,7 @@ class _ToggleButtonState extends State<ToggleButton> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 4,
