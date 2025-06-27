@@ -55,6 +55,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/sounds/sound.mp3
+    - assets/logo.svg
   fonts:
     - family: ChangwonDangam
       fonts:

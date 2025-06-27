@@ -112,7 +112,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 ElevatedButton(onPressed: () async {
                   // 알람 추가 페이지로 이동
-                  final result = await Navigator.pushNamed(context, '/solve');
+                  final result = await Navigator.pushNamed(context, '/addition/time');
 
                   // 돌아왔을 때 result가 'updated'라면 데이터 다시 불러오기
                   if (result == 'updated') {

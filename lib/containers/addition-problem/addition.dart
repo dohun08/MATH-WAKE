@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,7 +17,17 @@ class ProblemPicker extends StatefulWidget {
 class _ProblemPickerState extends State<ProblemPicker> {
   final TextEditingController _nameController = TextEditingController();
   Uint8List? _imageBytes;
-
+  bool _hasTakenPicture = false;
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () {
+      if (!_hasTakenPicture) {
+        _hasTakenPicture = true;
+        takePicture();
+      }
+    });
+  }
   @override
   void dispose() {
     _nameController.dispose();
