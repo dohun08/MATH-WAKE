@@ -52,9 +52,9 @@ class _Solve extends State<Solve> {
     try {
       // assets 폴더 경로에 맞게 조정하세요
       await _audioPlayer.play(AssetSource('sounds/sound.mp3'));
-      print('✅ 소리 재생 성공');
+      print('소리 재생 성공');
     } catch (e) {
-      print('❌ 소리 재생 실패: $e');
+      print('소리 재생 실패: $e');
     }
   }
 

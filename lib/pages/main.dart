@@ -45,7 +45,20 @@ class _HomePageState extends State<HomePage> {
 
     final keys = prefs.getKeys();
     print('📋 SharedPreferences 전체 저장소:');
-
+    final sampleAlarms = [
+      {
+        "title": "알람입니당",
+        "hour": 7,
+        "minute": 30,
+        "status": true
+      },
+      {
+        "title": "이건 꼭 일어나야함",
+        "hour": 8,
+        "minute": 0,
+        "status": false
+      }
+    ];
     for (String key in keys) {
       final value = prefs.getString(key);
       print('키: $key, 값: $value');
@@ -65,8 +78,10 @@ class _HomePageState extends State<HomePage> {
         List<dynamic> alarmJsonList = jsonDecode(value);
         List<Map<String, dynamic>> alarmList =
         alarmJsonList.map((e) => Map<String, dynamic>.from(e)).toList();
+        final mergedAlarms = [...alarmList, ...sampleAlarms];
+
         setState(() {
-          _alarmList = alarmList; // _alarmList도 상태변수라고 가정
+          _alarmList = mergedAlarms;
         });
 
         for (var alarm in _alarmList) {
